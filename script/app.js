@@ -54,7 +54,7 @@ const updateSun = function (now) {
     if (timePercent < 100) {
         const readableTime = _parseMillisecondsIntoReadableTime(now.getTime() / 1000);
         htmlSun.style.setProperty("left", `${timePercent}%`);
-        htmlSun.style.setProperty("bottom", `${100 - timePercent}%`);
+        htmlSun.style.setProperty("bottom", `${timePercent < 50 ? timePercent * 2 : (100 - timePercent) * 2}%`);
         htmlSun.setAttribute("data-time", readableTime);
 
         htmlMinutesLeft.innerHTML = Math.floor(totalMinutes - minutesSinceSunrise);
