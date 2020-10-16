@@ -69,7 +69,7 @@ const updateSun = function (now) {
         htmlMinutesLeft.innerHTML = Math.floor(totalMinutes - minutesSinceSunrise);
 
         // Nu maken we een functie die de zon elke minuut zal updaten
-        // ( Door updateTimeout kunnen we vaker updaten )
+        // ( Door de updateTimeout variabele kunnen we vaker updaten )
         setTimeout(function () {
             // PS.: vergeet weer niet om het resterend aantal minuten te updaten en verhoog het aantal verstreken minuten.
             minutesSinceSunrise += updateTimeout / 60000;
@@ -79,33 +79,28 @@ const updateSun = function (now) {
     } else {
         // turn on night mode and dont call the update function anymore
         turnOnNightMode();
-
-        const miliSecondsUntillMidnight = getMiliSecondsUntillMidnight(now);
         htmlMinutesLeft.innerHTML = 0;
 
-        // Boot back up in the morning
+        // Boot back up in at 5 minutes past midnight
         setTimeout(function () {
             // Restart the whole app
             getAPI(lat, lng);
-        }, miliSecondsUntillMidnight);
+        }, getMiliSecondsUntillMidnight(now) + 300000);
     }
 };
 
 // 4 Zet de zon op de juiste plaats en zorg ervoor dat dit iedere minuut gebeurt.
 const placeSunAndStartMoving = (sunrise, sunset) => {
-    console.log("Place Sun");
+    // const now = new Date(2020, 9, 16, 7, 50, 0);
+    const now = new Date();
+    const currentTime = Math.round(now.getTime() / 1000);
 
-    const now = new Date(2020, 9, 16, 7, 50, 0);
-    // const now = new Date();
     // In de functie moeten we eerst wat zaken ophalen en berekenen.
     totalMinutes = (sunset - sunrise) / 60;
-    const currentTime = Math.round(now.getTime() / 1000);
     const minutesRemaining = (sunset - currentTime) / 60;
 
     // Bepaal het aantal minuten dat de zon al op is.
     minutesSinceSunrise = totalMinutes - minutesRemaining;
-
-    // We voegen ook de 'is-loaded' class toe aan de body-tag.
 
     if (currentTime < sunrise) {
         // Als het nog donker is
@@ -116,11 +111,11 @@ const placeSunAndStartMoving = (sunrise, sunset) => {
         htmlMinutesLeft.innerHTML = Math.round(miliSecondsUntilSunrise / 60000);
         htmlLightType.innerHTML = "darkness";
 
-        // Update de zon vanaf sunrise
+        // Elke minuut updaten tot het sunrise is, daarna updaten we in de updateSun functie
+        // timeout kan niet miliSecondsUntilSunrise zijn want dan klopt de htmlMinutesLeft niet
         setTimeout(function () {
-            turnOnDayMode();
-            updateSun(new Date());
-        }, miliSecondsUntilSunrise);
+            placeSunAndStartMoving(sunrise, sunset);
+        }, 60000);
 
     } else {
         // Als het al licht is
@@ -157,11 +152,11 @@ const intermediateFetch = async function (endPoint) {
         const response = await fetch(endPoint, {
             headers: customHeaders,
         });
-
         const data = await response.json();
 
         // Als dat gelukt is, gaan we naar onze showResult functie.
         showResult(data);
+
     } catch (error) {
         console.log("An error occured, we handled it.", error);
     }
