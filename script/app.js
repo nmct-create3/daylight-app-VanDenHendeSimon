@@ -1,4 +1,4 @@
-let htmlSun, htmlAll, htmlSunrise, htmlSunset, htmlLocation, htmlMinutesLeft;
+let htmlSun, htmlAll, htmlSunrise, htmlSunset, htmlLocation, htmlMinutesLeft, htmlLightType;
 let minutesSinceSunrise, totalMinutes;
 
 let lat, lng;
@@ -14,6 +14,7 @@ const getDomElements = function () {
     htmlSunset = document.querySelector(".js-sunset");
     htmlLocation = document.querySelector(".js-location");
     htmlMinutesLeft = document.querySelector(".js-time-left");
+    htmlLightType = document.querySelector(".js-light-type"); // span toegevoegd rond 'sunlight' in de html
 };
 
 const customHeaders = new Headers();
@@ -74,15 +75,19 @@ const updateSun = function (now) {
             minutesSinceSunrise += updateTimeout / 60000;
             updateSun(new Date());
         }, updateTimeout);
+
     } else {
         // turn on night mode and dont call the update function anymore
         turnOnNightMode();
+
+        const miliSecondsUntillMidnight = getMiliSecondsUntillMidnight(now);
+        htmlMinutesLeft.innerHTML = 0;
 
         // Boot back up in the morning
         setTimeout(function () {
             // Restart the whole app
             getAPI(lat, lng);
-        }, secondsUntillMidnight(now) * 1000);
+        }, miliSecondsUntillMidnight);
     }
 };
 
@@ -90,7 +95,8 @@ const updateSun = function (now) {
 const placeSunAndStartMoving = (sunrise, sunset) => {
     console.log("Place Sun");
 
-    const now = new Date();
+    const now = new Date(2020, 9, 16, 7, 50, 0);
+    // const now = new Date();
     // In de functie moeten we eerst wat zaken ophalen en berekenen.
     totalMinutes = (sunset - sunrise) / 60;
     const currentTime = Math.round(now.getTime() / 1000);
@@ -106,6 +112,10 @@ const placeSunAndStartMoving = (sunrise, sunset) => {
         turnOnNightMode();
         const miliSecondsUntilSunrise = (sunrise - currentTime) * 1000;
 
+        // x minutes darkness left today
+        htmlMinutesLeft.innerHTML = Math.round(miliSecondsUntilSunrise / 60000);
+        htmlLightType.innerHTML = "darkness";
+
         // Update de zon vanaf sunrise
         setTimeout(function () {
             turnOnDayMode();
@@ -114,6 +124,7 @@ const placeSunAndStartMoving = (sunrise, sunset) => {
 
     } else {
         // Als het al licht is
+        htmlLightType.innerHTML = "sunlight";
         turnOnDayMode();
         updateSun(now);
     }
@@ -156,11 +167,11 @@ const intermediateFetch = async function (endPoint) {
     }
 };
 
-const secondsUntillMidnight = function (now) {
+const getMiliSecondsUntillMidnight = function (now) {
     const minutesUntillNextHour = 60 - now.getMinutes();
     const hoursUntillMidnight = 24 - now.getHours() - 1;
 
-    return minutesUntillNextHour * 60 + hoursUntillMidnight * 3600;
+    return (minutesUntillNextHour * 60 + hoursUntillMidnight * 3600) * 1000;
 };
 
 // 2 Aan de hand van een longitude en latitude gaan we de yahoo wheater API ophalen.
