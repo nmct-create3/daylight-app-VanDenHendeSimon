@@ -90,8 +90,7 @@ const updateSun = function (now) {
 const placeSunAndStartMoving = (sunrise, sunset) => {
     console.log("Place Sun");
 
-    const now = new Date(2020, 9, 16, 7, 50, 0);
-    // const now = new Date();
+    const now = new Date();
     // In de functie moeten we eerst wat zaken ophalen en berekenen.
     totalMinutes = (sunset - sunrise) / 60;
     const currentTime = Math.round(now.getTime() / 1000);
